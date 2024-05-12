@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	:root {
+		--color-primary: 200 200 200;
+		--color-secondary: 20 20 20;
+	}
+}
+
+body {
+	color: rgb(var(--color-secondary));
+	background-color: rgb(var(--color-primary));
+	min-width: 480px;
+}
+
+a {
+	display: block;
+	font-weight: 600;
+	cursor: pointer;
+
+	&:hover {
+		text-decoration: underline;
+	}
+}
+
+input[type='radio'] {
+	width: 1em;
+	height: 1rem;
+	cursor: pointer;
+}
+
+label {
+	cursor: pointer;
+}

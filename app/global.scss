@@ -25,7 +25,8 @@ a {
 	}
 }
 
-input[type='radio'] {
+input[type='radio'],
+input[type='checkbox'] {
 	width: 1em;
 	height: 1rem;
 	cursor: pointer;
@@ -33,4 +34,8 @@ input[type='radio'] {
 
 label {
 	cursor: pointer;
+}
+
+button:disabled {
+	opacity: 75%;
 }

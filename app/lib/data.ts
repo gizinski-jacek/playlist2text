@@ -7,12 +7,12 @@ export const sourcesData: SourcesData = [
 		url: 'https://open.spotify.com/search/',
 		urlOption: '/tracks',
 	},
-	{
-		name: 'apple-music',
-		color: 'red-500',
-		url: 'https://music.apple.com/us/search?term=',
-		urlOption: '',
-	},
+	// {
+	// 	name: 'apple-music',
+	// 	color: 'red-500',
+	// 	url: 'https://music.apple.com/us/search?term=',
+	// 	urlOption: '',
+	// },
 	{
 		name: 'youtube',
 		color: 'red-700',

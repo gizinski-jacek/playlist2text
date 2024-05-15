@@ -24,6 +24,10 @@ export async function GET(req: NextRequest) {
 				{ success: false },
 				{ status: 400, statusText: 'Provide id' }
 			);
+		const cleanId = playlistId.replace(
+			'https://open.spotify.com/playlist/',
+			''
+		);
 		const options = {
 			url: 'https://accounts.spotify.com/api/token',
 			method: 'POST',
@@ -42,16 +46,12 @@ export async function GET(req: NextRequest) {
 		};
 		const resAuth: AxiosResponse = await axios(options);
 		const token = resAuth.data.access_token;
-		const res = await axios.get(
-			process.env.SPOTIFY_API_URI +
-				playlistId.replace('https://open.spotify.com/playlist/', ''),
-			{
-				headers: {
-					Authorization: 'Bearer ' + token,
-				},
-				timeout: 10000,
-			}
-		);
+		const res = await axios.get(process.env.SPOTIFY_API_URI + cleanId, {
+			headers: {
+				Authorization: 'Bearer ' + token,
+			},
+			timeout: 10000,
+		});
 		return Response.json(res.data, { status: 200 });
 	} catch (error: any) {
 		if (error instanceof Response) {

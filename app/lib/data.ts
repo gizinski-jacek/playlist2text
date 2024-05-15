@@ -26,3 +26,11 @@ export const sourcesData: SourcesData = [
 		urlOption: '',
 	},
 ];
+
+export const fieldNames: string[] = [
+	'Track Name',
+	'Duration',
+	'Album Name',
+	'Artists',
+	'Album Release',
+];

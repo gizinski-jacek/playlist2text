@@ -27,7 +27,7 @@ export const sourcesData: SourcesData = [
 	},
 ];
 
-export const fieldNames: string[] = [
+export const spotifyFieldNames: string[] = [
 	'Track Name',
 	'Duration',
 	'Album Name',

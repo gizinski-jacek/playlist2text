@@ -2,24 +2,37 @@
 
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { useState } from 'react';
-import { SpotifyPlaylistsResponse } from './lib/types';
+import { SpotifyPlaylistResponse } from './lib/types';
+import { PlaylistInfo } from 'youtube-ext';
+import { VideoDetailed } from 'ytmusic-api';
 import SpotifyPlaylistWrapper from './components/wrappers/SpotifyPlaylistWrapper';
-import { fieldNames, sourcesData } from './lib/data';
-import { formatPlaylistToCSV, formatPlaylistToTXT } from './lib/utils';
+import YTPlaylistWrapper from './components/wrappers/YTPlaylistWrapper';
+import YTMusicPlaylistWrapper from './components/wrappers/YTMusicPlaylistWrapper';
+import { spotifyFieldNames, sourcesData } from './lib/data';
+import {
+	formatSpotifyPlaylistToTXT,
+	formatYTPlaylistToTXT,
+	formatYTMusicPlaylistToTXT,
+	formatSpotifyPlaylistToCSV,
+	formatYTPlaylistToCSV,
+	formatYTMusicPlaylistToCSV,
+} from './lib/utils';
 import LoadingBar from './components/LoadingBar';
 
 export default function Home() {
 	const [fetching, setFetching] = useState(false);
-	const [playlistData, setPlaylistData] =
-		useState<SpotifyPlaylistsResponse | null>(null);
+	const [playlistData, setPlaylistData] = useState<
+		SpotifyPlaylistResponse | PlaylistInfo | VideoDetailed[] | null
+	>(null);
 	const [fetchingError, setFetchingError] = useState<string | null>(null);
 	const [selectedSource, setSelectedSource] = useState<string | null>(null);
+	const [renderedSource, setRenderedSource] = useState<string | null>(null);
 	const [playlistInput, setPlaylistInput] = useState('');
 	const [formError, setFormError] = useState<string | null>(null);
 	const [exportFields, setExportFields] = useState<
 		{ name: string; checked: boolean }[]
 	>(() =>
-		fieldNames.map((field) => ({
+		spotifyFieldNames.map((field) => ({
 			name: field,
 			checked: false,
 		}))
@@ -32,6 +45,7 @@ export default function Home() {
 			setFormError(null);
 			setFieldsError(null);
 			setPlaylistData(null);
+			setFetchingError(null);
 			setFetching(true);
 			if (!selectedSource) {
 				setFormError('Select playlist source!');
@@ -43,6 +57,7 @@ export default function Home() {
 				`/api/${selectedSource}?playlistId=${playlistInput}`,
 				{ timeout: 10000 }
 			);
+			setRenderedSource(selectedSource);
 			setPlaylistData(res.data);
 			setFetching(false);
 		} catch (error: any) {
@@ -53,6 +68,8 @@ export default function Home() {
 			} else {
 				setFetchingError((error as Error).message || 'Unknown fetching error.');
 			}
+			setRenderedSource(null);
+			setPlaylistData(null);
 			setFetching(false);
 		}
 	}
@@ -89,21 +106,37 @@ export default function Home() {
 
 	function exportToTXTFile(e: React.MouseEvent<HTMLButtonElement>) {
 		e.preventDefault();
-		if (!playlistData) {
+		if (!playlistData || !renderedSource) {
 			setFieldsError('No playlist data to export!');
 			return;
 		}
-		if (!exportFields.some((field) => field.checked)) {
-			setFieldsError('Must select at least one field to export!');
-			return;
-		}
-		const fields: string[] = [];
-		exportFields.forEach((field) => {
-			if (field.checked) {
-				fields.push(field.name);
+		let data: string[];
+		if (renderedSource === 'spotify') {
+			if (!exportFields.some((field) => field.checked)) {
+				setFieldsError('Must select at least one field to export!');
+				return;
 			}
-		});
-		const data = formatPlaylistToTXT(fields, playlistData.tracks.items);
+			const fields: string[] = [];
+			exportFields.forEach((field) => {
+				if (field.checked) {
+					fields.push(field.name);
+				}
+			});
+			data = formatSpotifyPlaylistToTXT(
+				fields,
+				(playlistData as SpotifyPlaylistResponse).tracks.items
+			);
+		} else if (renderedSource === 'youtube') {
+			data = formatYTPlaylistToTXT(
+				['Track Name', 'Duration'],
+				(playlistData as PlaylistInfo).videos
+			);
+		} else {
+			data = formatYTMusicPlaylistToTXT(
+				['Track Name'],
+				playlistData as VideoDetailed[]
+			);
+		}
 		const linebreaks = data.join('\r\n');
 		const blob = new Blob([linebreaks], {
 			type: 'text/plain;charset=utf-8',
@@ -118,21 +151,37 @@ export default function Home() {
 
 	function exportToCSVFile(e: React.MouseEvent<HTMLButtonElement>) {
 		e.preventDefault();
-		if (!playlistData) {
+		if (!playlistData || !renderedSource) {
 			setFieldsError('No playlist data to export!');
 			return;
 		}
-		if (!exportFields.some((field) => field.checked)) {
-			setFieldsError('Must select at least one field to export!');
-			return;
-		}
-		const fields: string[] = [];
-		exportFields.forEach((field) => {
-			if (field.checked) {
-				fields.push(field.name);
+		let data: string[];
+		if (renderedSource === 'spotify') {
+			if (!exportFields.some((field) => field.checked)) {
+				setFieldsError('Must select at least one field to export!');
+				return;
 			}
-		});
-		const data = formatPlaylistToCSV(fields, playlistData.tracks.items);
+			const fields: string[] = [];
+			exportFields.forEach((field) => {
+				if (field.checked) {
+					fields.push(field.name);
+				}
+			});
+			data = formatSpotifyPlaylistToCSV(
+				fields,
+				(playlistData as SpotifyPlaylistResponse).tracks.items
+			);
+		} else if (renderedSource === 'youtube') {
+			data = formatYTPlaylistToCSV(
+				['Track Name', 'Duration'],
+				(playlistData as PlaylistInfo).videos
+			);
+		} else {
+			data = formatYTMusicPlaylistToCSV(
+				['Track Name'],
+				playlistData as VideoDetailed[]
+			);
+		}
 		const linebreaks = data.join('\r\n');
 		const blob = new Blob([linebreaks], {
 			type: 'text/csv;charset=UTF-8',
@@ -207,63 +256,88 @@ export default function Home() {
 					{fetchingError}
 				</div>
 			)}
-			{playlistData && (
-				<form className='flex flex-col gap-4 relative'>
-					<fieldset className='grid grid-cols-2 md:grid-cols-3 gap-4 p-3 px-5 border border-2 border-orange-700 rounded'>
-						<legend className='px-1 font-semibold capitalize'>
-							Select fields to export
-						</legend>
-						<div className='flex flex-row items-center absolute top-0 right-5 px-1 bg-custom-primary'>
-							<input
-								className={`h-4 w-4 accent-orange-700`}
-								type='checkbox'
-								name='field'
-								id='checkAll'
-								value='checkAll'
-								checked={exportFields.every((field) => field.checked)}
-								onChange={handleFieldToggle}
-								disabled={fetching}
-							/>
-							<label
-								htmlFor='checkAll'
-								className='ps-1 font-semibold capitalize'
-							>
-								Check all
-							</label>
-						</div>
-						{exportFields.map((field) => (
-							<div key={field.name} className='flex flex-row items-center'>
+			{playlistData ? (
+				renderedSource === 'spotify' ? (
+					<form className='flex flex-col gap-4 relative'>
+						<fieldset className='grid grid-cols-2 md:grid-cols-3 gap-4 p-3 px-5 border border-2 border-orange-700 rounded'>
+							<legend className='px-1 font-semibold capitalize'>
+								Select fields to export
+							</legend>
+							<div className='flex flex-row items-center absolute top-0 right-5 px-1 bg-custom-primary'>
 								<input
 									className={`h-4 w-4 accent-orange-700`}
 									type='checkbox'
 									name='field'
-									id={field.name}
-									value={field.name}
-									checked={field.checked}
+									id='checkAll'
+									value='checkAll'
+									checked={exportFields.every((field) => field.checked)}
 									onChange={handleFieldToggle}
 									disabled={fetching}
 								/>
-								<label htmlFor={field.name} className='ps-1 capitalize'>
-									{field.name}
+								<label
+									htmlFor='checkAll'
+									className='ps-1 font-semibold capitalize'
+								>
+									Check all
 								</label>
 							</div>
-						))}
-					</fieldset>
-					{fieldsError && (
-						<div className='text-xl font-semibold text-red-600 self-center underline'>
-							{fieldsError}
+							{exportFields.map((field) => (
+								<div key={field.name} className='flex flex-row items-center'>
+									<input
+										className={`h-4 w-4 accent-orange-700`}
+										type='checkbox'
+										name='field'
+										id={field.name}
+										value={field.name}
+										checked={field.checked}
+										onChange={handleFieldToggle}
+										disabled={fetching}
+									/>
+									<label htmlFor={field.name} className='ps-1 capitalize'>
+										{field.name}
+									</label>
+								</div>
+							))}
+						</fieldset>
+						{fieldsError && (
+							<div className='text-xl font-semibold text-red-600 self-center underline'>
+								{fieldsError}
+							</div>
+						)}
+						<div className='flex flex-col md:flex-row gap-4 mx-auto'>
+							<button
+								className='font-bold text-white p-2 rounded-lg bg-orange-700 '
+								type='button'
+								onClick={exportToTXTFile}
+								disabled={
+									fetching ||
+									!!fieldsError ||
+									!exportFields.some((field) => field.checked)
+								}
+							>
+								Download as TXT file
+							</button>
+							<button
+								className='font-bold text-white p-2 rounded-lg bg-orange-700'
+								type='button'
+								onClick={exportToCSVFile}
+								disabled={
+									fetching ||
+									!!fieldsError ||
+									!exportFields.some((field) => field.checked)
+								}
+							>
+								Download as CSV file
+							</button>
 						</div>
-					)}
+					</form>
+				) : (
 					<div className='flex flex-col md:flex-row gap-4 mx-auto'>
 						<button
 							className='font-bold text-white p-2 rounded-lg bg-orange-700 '
 							type='button'
 							onClick={exportToTXTFile}
-							disabled={
-								fetching ||
-								!!fieldsError ||
-								!exportFields.some((field) => field.checked)
-							}
+							disabled={fetching}
 						>
 							Download as TXT file
 						</button>
@@ -271,18 +345,24 @@ export default function Home() {
 							className='font-bold text-white p-2 rounded-lg bg-orange-700'
 							type='button'
 							onClick={exportToCSVFile}
-							disabled={
-								fetching ||
-								!!fieldsError ||
-								!exportFields.some((field) => field.checked)
-							}
+							disabled={fetching}
 						>
 							Download as CSV file
 						</button>
 					</div>
-				</form>
-			)}
-			{playlistData && <SpotifyPlaylistWrapper data={playlistData} />}
+				)
+			) : null}
+			{playlistData ? (
+				renderedSource === 'spotify' ? (
+					<SpotifyPlaylistWrapper
+						data={playlistData as SpotifyPlaylistResponse}
+					/>
+				) : renderedSource === 'youtube' ? (
+					<YTPlaylistWrapper data={playlistData as PlaylistInfo} />
+				) : renderedSource === 'youtube-music' ? (
+					<YTMusicPlaylistWrapper data={playlistData as VideoDetailed[]} />
+				) : null
+			) : null}
 		</main>
 	);
 }

@@ -1,4 +1,6 @@
 import { SpotifyTrack } from './types';
+import { PlaylistVideo } from 'youtube-ext';
+import { VideoDetailed } from 'ytmusic-api';
 
 export function padNumber(x: number): string {
 	return x.toString().padStart(2, '0');
@@ -14,7 +16,7 @@ export function convertMsToDuration(value: number): string {
 	return padNumber(mins) + ':' + padNumber(secs);
 }
 
-export function formatPlaylistToTXT(
+export function formatSpotifyPlaylistToTXT(
 	fields: string[],
 	trackList: SpotifyTrack[]
 ) {
@@ -49,7 +51,7 @@ export function formatPlaylistToTXT(
 	return [txtFields, ...txtData];
 }
 
-export function formatPlaylistToCSV(
+export function formatSpotifyPlaylistToCSV(
 	fields: string[],
 	trackList: SpotifyTrack[]
 ) {
@@ -74,6 +76,96 @@ export function formatPlaylistToCSV(
 					break;
 				case 'album release':
 					array.push(data.track.album.release_date);
+					break;
+				default:
+					break;
+			}
+		});
+		return '"' + array.join('","') + '"';
+	});
+	return [csvFields, ...csvData];
+}
+
+export function formatYTPlaylistToTXT(
+	fields: string[],
+	trackList: PlaylistVideo[]
+) {
+	const txtFields = fields.join(' - ');
+	const txtData = trackList.map((data) => {
+		const array: string[] = [];
+		fields.forEach((field) => {
+			switch (field.toLocaleLowerCase()) {
+				case 'track name':
+					array.push(data.title);
+					break;
+				case 'duration':
+					array.push(data.duration.pretty);
+					break;
+				default:
+					break;
+			}
+		});
+		return array.join(' - ');
+	});
+	return [txtFields, ...txtData];
+}
+
+export function formatYTPlaylistToCSV(
+	fields: string[],
+	trackList: PlaylistVideo[]
+) {
+	const csvFields = '"' + fields.join('","') + '"';
+	const csvData = trackList.map((data) => {
+		const array: string[] = [];
+		fields.forEach((field) => {
+			switch (field.toLocaleLowerCase()) {
+				case 'track name':
+					array.push(data.title);
+					break;
+				case 'duration':
+					array.push(data.duration.pretty);
+					break;
+				default:
+					break;
+			}
+		});
+		return '"' + array.join('","') + '"';
+	});
+	return [csvFields, ...csvData];
+}
+
+export function formatYTMusicPlaylistToTXT(
+	fields: string[],
+	trackList: VideoDetailed[]
+) {
+	const txtFields = fields.join(' - ');
+	const txtData = trackList.map((data) => {
+		const array: string[] = [];
+		fields.forEach((field) => {
+			switch (field.toLocaleLowerCase()) {
+				case 'track name':
+					array.push(data.name);
+					break;
+				default:
+					break;
+			}
+		});
+		return array.join(' - ');
+	});
+	return [txtFields, ...txtData];
+}
+
+export function formatYTMusicPlaylistToCSV(
+	fields: string[],
+	trackList: VideoDetailed[]
+) {
+	const csvFields = '"' + fields.join('","') + '"';
+	const csvData = trackList.map((data) => {
+		const array: string[] = [];
+		fields.forEach((field) => {
+			switch (field.toLocaleLowerCase()) {
+				case 'track name':
+					array.push(data.name);
 					break;
 				default:
 					break;

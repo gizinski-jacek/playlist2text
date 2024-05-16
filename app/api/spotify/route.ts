@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import { type NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
 export async function GET(req: NextRequest) {
 	try {
@@ -12,17 +12,17 @@ export async function GET(req: NextRequest) {
 			console.error(
 				'Provide SPOTIFY_AUTH_URI, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_API_URI env variables.'
 			);
-			return Response.json(
-				{ success: false },
-				{ status: 400, statusText: 'Unknown server error.' }
+			return NextResponse.json(
+				{ error: 'Unknown server error.' },
+				{ status: 500 }
 			);
 		}
 		const { searchParams } = new URL(req.url);
 		const playlistId = searchParams.get('playlistId');
 		if (!playlistId)
-			return Response.json(
-				{ success: false },
-				{ status: 400, statusText: 'Provide id' }
+			return NextResponse.json(
+				{ error: 'Provide playlist link or Id.' },
+				{ status: 400 }
 			);
 		const cleanId = playlistId.replace(
 			'https://open.spotify.com/playlist/',
@@ -52,28 +52,22 @@ export async function GET(req: NextRequest) {
 			},
 			timeout: 10000,
 		});
-		return Response.json(res.data, { status: 200 });
+		return NextResponse.json(res.data, { status: 200 });
 	} catch (error: any) {
 		if (error instanceof Response) {
-			return Response.json(
-				{ success: false },
-				{
-					status: error.status || 400,
-					statusText: error.statusText || 'Unknown error.',
-				}
+			return NextResponse.json(
+				{ error: error.statusText || 'Unknown server error.' },
+				{ status: error.status || 500 }
 			);
 		} else if (error instanceof AxiosError) {
-			return Response.json(
-				{ success: false },
-				{
-					status: error.status || 400,
-					statusText: error.message || 'Unknown error.',
-				}
+			return NextResponse.json(
+				{ error: error.message || 'Unknown server error.' },
+				{ status: error.status || 500 }
 			);
 		} else {
-			return Response.json(
-				{ success: false },
-				{ status: 400, statusText: 'Unknown error.' }
+			return NextResponse.json(
+				{ error: 'Unknown server error.' },
+				{ status: 500 }
 			);
 		}
 	}

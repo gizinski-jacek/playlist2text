@@ -5,7 +5,7 @@ export type SourcesData = {
 	urlOption: string;
 }[];
 
-export interface SpotifyPlaylistsResponse {
+export interface SpotifyPlaylistResponse {
 	collaborative: false;
 	description: string;
 	external_urls: {

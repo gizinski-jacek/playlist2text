@@ -5,10 +5,8 @@ import YTMusic, { VideoDetailed } from 'ytmusic-api';
 
 export async function GET(req: NextRequest) {
 	try {
-		if (!process.env.YOUTUBE_MUSIC_API_URI || !process.env.YOUTUBE_API_KEY) {
-			console.error(
-				'Provide YOUTUBE_MUSIC_API_URI, YOUTUBE_API_KEY env variable.'
-			);
+		if (!process.env.YOUTUBE_API_KEY) {
+			console.error('Provide YOUTUBE_API_KEY env variable.');
 			return NextResponse.json(
 				{ error: 'Unknown server error.' },
 				{ status: 500 }
@@ -31,7 +29,7 @@ export async function GET(req: NextRequest) {
 			part: 'id',
 		});
 		const res: AxiosResponse = await axios.get(
-			process.env.YOUTUBE_MUSIC_API_URI + '?' + query,
+			'https://www.googleapis.com/youtube/v3/playlists?' + query,
 			{ timeout: 10000 }
 		);
 		const ytmusic = new YTMusic();

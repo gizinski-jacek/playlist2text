@@ -4,8 +4,8 @@ import { PlaylistInfo, playlistInfo } from 'youtube-ext';
 
 export async function GET(req: NextRequest) {
 	try {
-		if (!process.env.YOUTUBE_API_KEY || !process.env.YOUTUBE_API_URI) {
-			console.error('Provide YOUTUBE_API_KEY, YOUTUBE_API_URI env variables.');
+		if (!process.env.YOUTUBE_API_KEY) {
+			console.error('Provide YOUTUBE_API_KEY env variable.');
 			return NextResponse.json(
 				{ error: 'Unknown server error.' },
 				{ status: 500 }

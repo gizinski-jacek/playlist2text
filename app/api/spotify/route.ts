@@ -3,14 +3,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function GET(req: NextRequest) {
 	try {
-		if (
-			!process.env.SPOTIFY_AUTH_URI ||
-			!process.env.SPOTIFY_CLIENT_ID ||
-			!process.env.SPOTIFY_CLIENT_SECRET ||
-			!process.env.SPOTIFY_API_URI
-		) {
+		if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
 			console.error(
-				'Provide SPOTIFY_AUTH_URI, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_API_URI env variables.'
+				'Provide SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET env variables.'
 			);
 			return NextResponse.json(
 				{ error: 'Unknown server error.' },
@@ -46,12 +41,15 @@ export async function GET(req: NextRequest) {
 		};
 		const resAuth: AxiosResponse = await axios(options);
 		const token = resAuth.data.access_token;
-		const res = await axios.get(process.env.SPOTIFY_API_URI + cleanId, {
-			headers: {
-				Authorization: 'Bearer ' + token,
-			},
-			timeout: 10000,
-		});
+		const res = await axios.get(
+			'https://api.spotify.com/v1/playlists/' + cleanId,
+			{
+				headers: {
+					Authorization: 'Bearer ' + token,
+				},
+				timeout: 10000,
+			}
+		);
 		return NextResponse.json(res.data, { status: 200 });
 	} catch (error: any) {
 		if (error instanceof Response) {

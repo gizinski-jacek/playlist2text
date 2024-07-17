@@ -29,7 +29,7 @@ export default function YTPlaylistWrapper({ data }: { data: PlaylistInfo }) {
 			</div>
 			{data.videos.map((item, i) => (
 				<div
-					key={item.id}
+					key={item.id + i}
 					className='flex flex-col justify-between gap-1 p-2 bg-gray-300 border border-2 border-black rounded rounded-md max-w-sm capitalize'
 				>
 					<div className='flex flex-col gap-1'>

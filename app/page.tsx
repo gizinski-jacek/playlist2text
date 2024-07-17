@@ -2,7 +2,7 @@
 
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { useState } from 'react';
-import { SpotifyPlaylistResponse } from './lib/types';
+import { Sources, SpotifyPlaylistResponse } from './lib/types';
 import { PlaylistInfo } from 'youtube-ext';
 import { VideoDetailed } from 'ytmusic-api';
 import SpotifyPlaylistWrapper from './components/wrappers/SpotifyPlaylistWrapper';
@@ -25,7 +25,7 @@ export default function Home() {
 		SpotifyPlaylistResponse | PlaylistInfo | VideoDetailed[] | null
 	>(null);
 	const [fetchingError, setFetchingError] = useState<string | null>(null);
-	const [selectedSource, setSelectedSource] = useState<string | null>(null);
+	const [selectedSource, setSelectedSource] = useState<Sources | null>(null);
 	const [renderedSource, setRenderedSource] = useState<string | null>(null);
 	const [playlistInput, setPlaylistInput] = useState('');
 	const [formError, setFormError] = useState<string | null>(null);
@@ -48,25 +48,36 @@ export default function Home() {
 			setFetchingError(null);
 			setFetching(true);
 			if (!selectedSource) {
-				setFormError('Select playlist source!');
+				setFormError('Select playlist source');
 			}
 			if (!playlistInput) {
-				setFormError('Provide playlist link or id!');
+				if (selectedSource === 'soundcloud') {
+					setFormError('Provide playlist embed code');
+				} else {
+					setFormError('Provide playlist link or Id');
+				}
 			}
-			const res: AxiosResponse = await axios.get(
-				`/api/${selectedSource}?playlistId=${playlistInput}`,
-				{ timeout: 10000 }
-			);
+			if (!playlistInput) {
+				if (selectedSource === 'soundcloud' && playlistInput.length > 1024) {
+					setFormError('Provided playlist embed code is too long');
+				} else if (playlistInput.length > 128) {
+					setFormError('Provided playlist link or Id is too long');
+				}
+			}
+			const res: AxiosResponse = await axios.post(`/api/${selectedSource}`, {
+				body: { playlist: playlistInput },
+				timeout: 10000,
+			});
 			setRenderedSource(selectedSource);
 			setPlaylistData(res.data);
 			setFetching(false);
-		} catch (error: any) {
-			if (error instanceof Response) {
-				setFetchingError(error.statusText || 'Unknown fetching error.');
-			} else if (error instanceof AxiosError) {
-				setFetchingError(error.message || 'Unknown fetching error.');
+		} catch (error: unknown) {
+			if (error instanceof AxiosError) {
+				setFetchingError(
+					error.response?.data.error || 'Unknown fetching error'
+				);
 			} else {
-				setFetchingError((error as Error).message || 'Unknown fetching error.');
+				setFetchingError((error as Error).message || 'Unknown fetching error');
 			}
 			setRenderedSource(null);
 			setPlaylistData(null);
@@ -75,7 +86,7 @@ export default function Home() {
 	}
 
 	function handleSourceChange(e: React.ChangeEvent<HTMLInputElement>) {
-		const { value } = e.target as { value: string };
+		const { value } = e.target as { value: Sources };
 		setFormError(null);
 		setSelectedSource(value);
 	}
@@ -107,13 +118,13 @@ export default function Home() {
 	function exportToTXTFile(e: React.MouseEvent<HTMLButtonElement>) {
 		e.preventDefault();
 		if (!playlistData || !renderedSource) {
-			setFieldsError('No playlist data to export!');
+			setFieldsError('No playlist data to export');
 			return;
 		}
 		let data: string[];
 		if (renderedSource === 'spotify') {
 			if (!exportFields.some((field) => field.checked)) {
-				setFieldsError('Must select at least one field to export!');
+				setFieldsError('Must select at least one field to export');
 				return;
 			}
 			const fields: string[] = [];
@@ -152,13 +163,13 @@ export default function Home() {
 	function exportToCSVFile(e: React.MouseEvent<HTMLButtonElement>) {
 		e.preventDefault();
 		if (!playlistData || !renderedSource) {
-			setFieldsError('No playlist data to export!');
+			setFieldsError('No playlist data to export');
 			return;
 		}
 		let data: string[];
 		if (renderedSource === 'spotify') {
 			if (!exportFields.some((field) => field.checked)) {
-				setFieldsError('Must select at least one field to export!');
+				setFieldsError('Must select at least one field to export');
 				return;
 			}
 			const fields: string[] = [];
@@ -222,12 +233,16 @@ export default function Home() {
 					</fieldset>
 				</div>
 				<fieldset className='flex flex-col md:flex-1'>
-					<label htmlFor='playlistInput'>Provide playlist link or Id</label>
+					<label htmlFor='playlistInput'>
+						{selectedSource === 'soundcloud'
+							? 'Provide playlist Embed code'
+							: 'Provide playlist link or Id'}
+					</label>
 					<input
 						className='border border-2 border-blue-600 rounded p-1'
 						type='text'
 						minLength={8}
-						maxLength={128}
+						maxLength={selectedSource === 'soundcloud' ? 1024 : 128}
 						id='playlistInput'
 						name='playlistInput'
 						value={playlistInput}
@@ -252,7 +267,7 @@ export default function Home() {
 			</form>
 			{fetching && <LoadingBar margin='1rem' width='50%' />}
 			{!fetching && fetchingError && (
-				<div className='text-xl font-semibold text-red-600 self-center underline'>
+				<div className='text-xl font-semibold self-center p-2 bg-gray-800 text-white border border-[3px] border-red-600 rounded'>
 					{fetchingError}
 				</div>
 			)}

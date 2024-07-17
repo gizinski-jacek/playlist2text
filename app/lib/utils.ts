@@ -1,6 +1,8 @@
+import { NextResponse } from 'next/server';
 import { SpotifyTrack } from './types';
 import { PlaylistVideo } from 'youtube-ext';
 import { VideoDetailed } from 'ytmusic-api';
+import { AxiosError } from 'axios';
 
 export function padNumber(x: number): string {
 	return x.toString().padStart(2, '0');
@@ -174,4 +176,20 @@ export function formatYTMusicPlaylistToCSV(
 		return '"' + array.join('","') + '"';
 	});
 	return [csvFields, ...csvData];
+}
+
+export function fetchErrorFormat(error: unknown): NextResponse<{
+	error: string;
+}> {
+	if (error instanceof AxiosError) {
+		return NextResponse.json(
+			{ error: error.response?.data.error || 'Unknown server error' },
+			{ status: error.status || 500 }
+		);
+	} else {
+		return NextResponse.json(
+			{ error: 'Unknown server error' },
+			{ status: 500 }
+		);
+	}
 }

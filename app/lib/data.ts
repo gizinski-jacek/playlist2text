@@ -8,6 +8,12 @@ export const sourcesData: SourcesData = [
 		urlOption: '/tracks',
 	},
 	// {
+	// 	name: 'soundcloud',
+	// 	color: 'orange-600',
+	// 	url: 'https://soundcloud.com/sc-playlists/sets/',
+	// 	urlOption: '',
+	// },
+	// {
 	// 	name: 'apple-music',
 	// 	color: 'red-500',
 	// 	url: 'https://music.apple.com/us/search?term=',

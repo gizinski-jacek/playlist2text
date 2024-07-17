@@ -84,29 +84,34 @@ export default function SpotifyPlaylistWrapper({
 						</div>
 					</div>
 					<div className='grid grid-cols-2 gap-1 mt-2'>
-						{sourcesData.map((source) => (
-							<div key={source.name}>
-								<a
-									href={
-										source.url +
-										item.track.name +
-										item.track.artists.map((artist) => ' ' + artist.name) +
-										source.urlOption
-									}
-									className={`w-fit flex flex-row decoration-${source.color} text-${source.color}`}
-									target='_blank'
-									rel='noreferrer'
-								>
-									<Image
-										src={`/${source.name}.svg`}
-										alt={source.name}
-										width={20}
-										height={20}
-									/>
-									<div className={`ps-2 capitalize`}>{source.name}</div>
-								</a>
-							</div>
-						))}
+						{sourcesData.map((source) => {
+							if (source.name === 'spotify-album') {
+								return;
+							}
+							return (
+								<div key={source.name}>
+									<a
+										href={
+											source.url +
+											item.track.name +
+											item.track.artists.map((artist) => ' ' + artist.name) +
+											source.urlOption
+										}
+										className={`w-fit flex flex-row decoration-${source.color} text-${source.color}`}
+										target='_blank'
+										rel='noreferrer'
+									>
+										<Image
+											src={`/${source.name}.svg`}
+											alt={source.name}
+											width={20}
+											height={20}
+										/>
+										<div className={`ps-2 capitalize`}>{source.name}</div>
+									</a>
+								</div>
+							);
+						})}
 					</div>
 				</div>
 			))}

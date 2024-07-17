@@ -2,7 +2,11 @@
 
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { useState } from 'react';
-import { Sources, SpotifyPlaylistResponse } from './lib/types';
+import {
+	Sources,
+	SpotifyAlbumResponse,
+	SpotifyPlaylistResponse,
+} from './lib/types';
 import { PlaylistInfo } from 'youtube-ext';
 import { VideoDetailed } from 'ytmusic-api';
 import SpotifyPlaylistWrapper from './components/wrappers/SpotifyPlaylistWrapper';
@@ -22,7 +26,11 @@ import LoadingBar from './components/LoadingBar';
 export default function Home() {
 	const [fetching, setFetching] = useState(false);
 	const [playlistData, setPlaylistData] = useState<
-		SpotifyPlaylistResponse | PlaylistInfo | VideoDetailed[] | null
+		| SpotifyPlaylistResponse
+		| SpotifyAlbumResponse
+		| PlaylistInfo
+		| VideoDetailed[]
+		| null
 	>(null);
 	const [fetchingError, setFetchingError] = useState<string | null>(null);
 	const [selectedSource, setSelectedSource] = useState<Sources | null>(null);
@@ -51,6 +59,9 @@ export default function Home() {
 			if (!playlistInput) {
 				if (selectedSource === 'soundcloud') {
 					setFormError('Provide playlist embed code');
+				}
+				if (selectedSource === 'spotify-album') {
+					setFormError('Provide album link or Id');
 				} else {
 					setFormError('Provide playlist link or Id');
 				}
@@ -248,6 +259,8 @@ export default function Home() {
 					<label htmlFor='playlistInput'>
 						{selectedSource === 'soundcloud'
 							? 'Provide playlist Embed code'
+							: selectedSource === 'spotify-album'
+							? 'Provide album link or Id'
 							: 'Provide playlist link or Id'}
 					</label>
 					<input
@@ -284,7 +297,7 @@ export default function Home() {
 				</div>
 			)}
 			{playlistData ? (
-				renderedSource === 'spotify' ? (
+				renderedSource === 'spotify' || renderedSource === 'spotify-album' ? (
 					<form className='flex flex-col gap-4 relative'>
 						<fieldset className='grid grid-cols-2 md:grid-cols-3 gap-4 p-3 px-5 border border-2 border-orange-700 rounded'>
 							<legend className='px-1 font-semibold capitalize'>
@@ -384,7 +397,16 @@ export default function Home() {
 					<SpotifyPlaylistWrapper
 						data={playlistData as SpotifyPlaylistResponse}
 					/>
-				) : renderedSource === 'youtube' ? (
+				) : // :
+				// renderedSource === 'spotify-album' ? (
+				// // <SpotifyPlaylistWrapper
+				// // 	data={playlistData as SpotifyPlaylistResponse}
+				// // />
+				// (playlistData as SpotifyAlbumResponse).tracks.items.map((item, i) => (
+				// 	<div key={i}>{item.name}</div>
+				// ))
+				// )
+				renderedSource === 'youtube' ? (
 					<YTPlaylistWrapper data={playlistData as PlaylistInfo} />
 				) : renderedSource === 'youtube-music' ? (
 					<YTMusicPlaylistWrapper data={playlistData as VideoDetailed[]} />

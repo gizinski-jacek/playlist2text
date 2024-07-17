@@ -8,6 +8,12 @@ export const sourcesData: SourcesData = [
 		urlOption: '/tracks',
 	},
 	{
+		name: 'spotify-album',
+		color: 'green-600',
+		url: 'https://open.spotify.com/search/',
+		urlOption: '/tracks',
+	},
+	{
 		name: 'soundcloud',
 		color: 'orange-600',
 		url: 'https://soundcloud.com/search?q=',

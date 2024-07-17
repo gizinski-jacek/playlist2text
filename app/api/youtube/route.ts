@@ -1,9 +1,10 @@
 // Google API documentation
 // https://developers.google.com/youtube/v3/docs/playlists/list
 
+import { YoutubePlaylistResponse } from '@/app/lib/types';
 import { fetchErrorFormat } from '@/app/lib/utils';
 import { NextResponse, type NextRequest } from 'next/server';
-import { PlaylistInfo, playlistInfo } from 'youtube-ext';
+import { playlistInfo } from 'youtube-ext';
 
 export async function POST(req: NextRequest) {
 	try {
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
 		const id = body.playlist.includes('list=')
 			? body.playlist.slice(body.playlist.indexOf('list=') + 5)
 			: body.playlist;
-		const results: PlaylistInfo = await playlistInfo(id);
+		const results: YoutubePlaylistResponse = await playlistInfo(id);
 		return Response.json(results, { status: 200 });
 	} catch (error: unknown) {
 		return fetchErrorFormat(error);

@@ -1,11 +1,12 @@
 // Google API documentation
 // https://developers.google.com/youtube/v3/docs/playlists/list
 
+import { YTMusicPlaylistResponse } from '@/app/lib/types';
 import { fetchErrorFormat } from '@/app/lib/utils';
 import axios, { AxiosResponse } from 'axios';
 import { NextResponse, type NextRequest } from 'next/server';
 import querystring from 'querystring';
-import YTMusic, { VideoDetailed } from 'ytmusic-api';
+import YTMusic from 'ytmusic-api';
 
 export async function POST(req: NextRequest) {
 	try {
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
 		);
 		const ytmusic = new YTMusic();
 		await ytmusic.initialize();
-		const results: VideoDetailed[] = await ytmusic.getPlaylistVideos(
+		const results: YTMusicPlaylistResponse = await ytmusic.getPlaylistVideos(
 			res.data.items[0].id
 		);
 		return Response.json(results, { status: 200 });

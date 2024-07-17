@@ -1,6 +1,7 @@
 // Spotify API documentation
 // https://developer.spotify.com/documentation/web-api/reference/get-playlist
 
+import { SpotifyPlaylistResponse, SpotifyTracksData } from '@/app/lib/types';
 import { fetchErrorFormat } from '@/app/lib/utils';
 import axios, { AxiosResponse } from 'axios';
 import { NextResponse, type NextRequest } from 'next/server';
@@ -41,12 +42,29 @@ export async function POST(req: NextRequest) {
 		};
 		const resAuth: AxiosResponse = await axios(options);
 		const token = resAuth.data.access_token;
-		const res = await axios.get('https://api.spotify.com/v1/playlists/' + id, {
-			headers: {
-				Authorization: 'Bearer ' + token,
-			},
-			timeout: 10000,
-		});
+		const res: AxiosResponse<SpotifyPlaylistResponse> = await axios.get(
+			'https://api.spotify.com/v1/playlists/' + id,
+			{
+				headers: {
+					Authorization: 'Bearer ' + token,
+				},
+				timeout: 10000,
+			}
+		);
+		// let nextPage: string | null = res.data.tracks.next;
+		// while (nextPage && res.data.tracks.items.length < res.data.tracks.total) {
+		// 	const nextRes: AxiosResponse<SpotifyTracksData> = await axios.get(
+		// 		res.data.tracks.next,
+		// 		{
+		// 			headers: {
+		// 				Authorization: 'Bearer ' + token,
+		// 			},
+		// 			timeout: 10000,
+		// 		}
+		// 	);
+		// 	nextPage = nextRes.data.next;
+		// 	res.data.tracks.items = [...res.data.tracks.items, ...nextRes.data.items];
+		// }
 		return NextResponse.json(res.data, { status: 200 });
 	} catch (error: unknown) {
 		return fetchErrorFormat(error);

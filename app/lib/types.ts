@@ -8,7 +8,7 @@ export type SourcesData = {
 export type Sources =
 	| 'spotify'
 	| 'soundcloud'
-	// | 'apple-music'
+	| 'apple-music'
 	| 'youtube'
 	| 'youtube-music';
 

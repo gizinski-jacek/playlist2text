@@ -1,7 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	images: {
-		domains: ['i.scdn.co', 'i.ytimg.com', 'charts-images.scdn.co'],
+		remotePatterns: [
+			{
+				protocol: 'https',
+				hostname: '*.scdn.co',
+				port: '',
+			},
+			{
+				protocol: 'https',
+				hostname: '*.ytimg.com',
+				port: '',
+			},
+		],
 	},
 };
 

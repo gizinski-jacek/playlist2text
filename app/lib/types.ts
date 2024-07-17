@@ -5,6 +5,13 @@ export type SourcesData = {
 	urlOption: string;
 }[];
 
+export type Sources =
+	| 'spotify'
+	| 'soundcloud'
+	// | 'apple-music'
+	| 'youtube'
+	| 'youtube-music';
+
 export interface SpotifyPlaylistResponse {
 	collaborative: false;
 	description: string;

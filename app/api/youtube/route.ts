@@ -1,3 +1,6 @@
+// Google API documentation
+// https://developers.google.com/youtube/v3/docs/playlists/list
+
 import { fetchErrorFormat } from '@/app/lib/utils';
 import { NextResponse, type NextRequest } from 'next/server';
 import { PlaylistInfo, playlistInfo } from 'youtube-ext';
@@ -23,6 +26,6 @@ export async function POST(req: NextRequest) {
 		const results: PlaylistInfo = await playlistInfo(id);
 		return Response.json(results, { status: 200 });
 	} catch (error: unknown) {
-		fetchErrorFormat(error);
+		return fetchErrorFormat(error);
 	}
 }

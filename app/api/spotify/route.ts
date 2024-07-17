@@ -1,3 +1,6 @@
+// Spotify API documentation
+// https://developer.spotify.com/documentation/web-api/reference/get-playlist
+
 import { fetchErrorFormat } from '@/app/lib/utils';
 import axios, { AxiosResponse } from 'axios';
 import { NextResponse, type NextRequest } from 'next/server';
@@ -46,6 +49,6 @@ export async function POST(req: NextRequest) {
 		});
 		return NextResponse.json(res.data, { status: 200 });
 	} catch (error: unknown) {
-		fetchErrorFormat(error);
+		return fetchErrorFormat(error);
 	}
 }

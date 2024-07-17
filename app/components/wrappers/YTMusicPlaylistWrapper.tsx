@@ -11,7 +11,7 @@ export default function YTMusicPlaylistWrapper({
 		<div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
 			{data.map((item, i) => (
 				<div
-					key={item.videoId}
+					key={item.videoId + i}
 					className='flex flex-col justify-between gap-1 p-2 bg-gray-300 border border-2 border-black rounded rounded-md max-w-sm capitalize'
 				>
 					<div className='flex flex-col gap-1'>
@@ -30,11 +30,28 @@ export default function YTMusicPlaylistWrapper({
 							</a>
 						</div>
 					</div>
+					<div className='grid grid-cols-[minmax(0, 1fr)] grid-cols-[auto_1fr] gap-1'>
+						<div className='me-2'>Artist:</div>
+						<div className='flex flex-row gap-1 flex-wrap'>
+							<a
+								href={
+									'https://music.youtube.com/channel/' + item.artist.artistId
+								}
+								className='text-blue-700'
+								target='_blank'
+								rel='noreferrer'
+							>
+								<div>{item.artist.name}</div>
+							</a>
+						</div>
+					</div>
 					<div className='grid grid-cols-2 gap-1 mt-2'>
 						{sourcesData.map((source) => (
 							<div key={source.name}>
 								<a
-									href={source.url + item.name + source.urlOption}
+									href={
+										source.url + item.name + item.artist.name + source.urlOption
+									}
 									className={`w-fit flex flex-row decoration-${source.color} text-${source.color}`}
 									target='_blank'
 									rel='noreferrer'

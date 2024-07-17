@@ -1,28 +1,25 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
+import { fetchErrorFormat } from '@/app/lib/utils';
+import axios, { AxiosResponse } from 'axios';
 import { NextResponse, type NextRequest } from 'next/server';
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
 	try {
 		if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
 			console.error(
-				'Provide SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET env variables.'
+				'Provide SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET env variables'
 			);
 			return NextResponse.json(
-				{ error: 'Unknown server error.' },
+				{ error: 'Unknown server error' },
 				{ status: 500 }
 			);
 		}
-		const { searchParams } = new URL(req.url);
-		const playlistId = searchParams.get('playlistId');
-		if (!playlistId)
+		const { body } = await req.json();
+		if (!body.playlist)
 			return NextResponse.json(
-				{ error: 'Provide playlist link or Id.' },
+				{ error: 'Provide playlist link or Id' },
 				{ status: 400 }
 			);
-		const cleanId = playlistId.replace(
-			'https://open.spotify.com/playlist/',
-			''
-		);
+		const id = body.playlist.replace('https://open.spotify.com/playlist/', '');
 		const options = {
 			url: 'https://accounts.spotify.com/api/token',
 			method: 'POST',
@@ -41,32 +38,14 @@ export async function GET(req: NextRequest) {
 		};
 		const resAuth: AxiosResponse = await axios(options);
 		const token = resAuth.data.access_token;
-		const res = await axios.get(
-			'https://api.spotify.com/v1/playlists/' + cleanId,
-			{
-				headers: {
-					Authorization: 'Bearer ' + token,
-				},
-				timeout: 10000,
-			}
-		);
+		const res = await axios.get('https://api.spotify.com/v1/playlists/' + id, {
+			headers: {
+				Authorization: 'Bearer ' + token,
+			},
+			timeout: 10000,
+		});
 		return NextResponse.json(res.data, { status: 200 });
-	} catch (error: any) {
-		if (error instanceof Response) {
-			return NextResponse.json(
-				{ error: error.statusText || 'Unknown server error.' },
-				{ status: error.status || 500 }
-			);
-		} else if (error instanceof AxiosError) {
-			return NextResponse.json(
-				{ error: error.message || 'Unknown server error.' },
-				{ status: error.status || 500 }
-			);
-		} else {
-			return NextResponse.json(
-				{ error: 'Unknown server error.' },
-				{ status: 500 }
-			);
-		}
+	} catch (error: unknown) {
+		fetchErrorFormat(error);
 	}
 }

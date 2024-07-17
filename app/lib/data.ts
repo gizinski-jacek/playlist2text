@@ -7,18 +7,12 @@ export const sourcesData: SourcesData = [
 		url: 'https://open.spotify.com/search/',
 		urlOption: '/tracks',
 	},
-	// {
-	// 	name: 'soundcloud',
-	// 	color: 'orange-600',
-	// 	url: 'https://soundcloud.com/sc-playlists/sets/',
-	// 	urlOption: '',
-	// },
-	// {
-	// 	name: 'apple-music',
-	// 	color: 'red-500',
-	// 	url: 'https://music.apple.com/us/search?term=',
-	// 	urlOption: '',
-	// },
+	{
+		name: 'soundcloud',
+		color: 'orange-600',
+		url: 'https://soundcloud.com/search?q=',
+		urlOption: '',
+	},
 	{
 		name: 'youtube',
 		color: 'red-700',
@@ -29,6 +23,12 @@ export const sourcesData: SourcesData = [
 		name: 'youtube-music',
 		color: 'red-600',
 		url: 'https://music.youtube.com/search?q=',
+		urlOption: '',
+	},
+	{
+		name: 'apple-music',
+		color: 'red-500',
+		url: 'https://music.apple.com/us/search?term=',
 		urlOption: '',
 	},
 ];

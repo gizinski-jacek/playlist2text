@@ -42,10 +42,8 @@ export default function Home() {
 	async function fetchData(e: React.MouseEvent<HTMLButtonElement>) {
 		try {
 			e.preventDefault();
-			setFormError(null);
-			setFieldsError(null);
+			dismissErrors();
 			setPlaylistData(null);
-			setFetchingError(null);
 			setFetching(true);
 			if (!selectedSource) {
 				setFormError('Select playlist source');
@@ -87,13 +85,13 @@ export default function Home() {
 
 	function handleSourceChange(e: React.ChangeEvent<HTMLInputElement>) {
 		const { value } = e.target as { value: Sources };
-		setFormError(null);
+		dismissErrors();
 		setSelectedSource(value);
 	}
 
 	function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
 		const { value } = e.target;
-		setFormError(null);
+		dismissErrors();
 		setPlaylistInput(value);
 	}
 
@@ -205,6 +203,12 @@ export default function Home() {
 		link.remove();
 	}
 
+	function dismissErrors() {
+		setFormError(null);
+		setFieldsError(null);
+		setFetchingError(null);
+	}
+
 	return (
 		<main className='min-h-screen flex flex-col gap-4 items-center p-8'>
 			<form className='flex flex-col gap-2'>
@@ -213,23 +217,31 @@ export default function Home() {
 						<legend className='px-1 font-semibold capitalize'>
 							Select playlist source
 						</legend>
-						{sourcesData.map((source) => (
-							<div key={source.name} className='flex flex-row items-center'>
-								<input
-									className={`h-4 w-4 accent-${source.color}`}
-									type='radio'
-									name='source'
-									id={source.name}
-									value={source.name}
-									checked={source.name === selectedSource}
-									onChange={handleSourceChange}
-									disabled={fetching}
-								/>
-								<label htmlFor={source.name} className='ps-1 capitalize'>
-									{source.name.replace('-', ' ')}
-								</label>
-							</div>
-						))}
+						{sourcesData.map((source) => {
+							if (
+								source.name === 'soundcloud' ||
+								source.name === 'apple-music'
+							) {
+								return;
+							}
+							return (
+								<div key={source.name} className='flex flex-row items-center'>
+									<input
+										className={`h-4 w-4 accent-${source.color}`}
+										type='radio'
+										name='source'
+										id={source.name}
+										value={source.name}
+										checked={source.name === selectedSource}
+										onChange={handleSourceChange}
+										disabled={fetching}
+									/>
+									<label htmlFor={source.name} className='ps-1 capitalize'>
+										{source.name.replace('-', ' ')}
+									</label>
+								</div>
+							);
+						})}
 					</fieldset>
 				</div>
 				<fieldset className='flex flex-col md:flex-1'>

@@ -34,7 +34,7 @@ export default function SpotifyPlaylistWrapper({
 			</div>
 			{data.tracks.items.map((item, i) => (
 				<div
-					key={item.track.id}
+					key={item.track.id + i}
 					className='flex flex-col justify-between gap-1 p-2 bg-gray-300 border border-2 border-black rounded rounded-md max-w-sm capitalize'
 				>
 					<div className='flex flex-col gap-1'>
@@ -68,7 +68,7 @@ export default function SpotifyPlaylistWrapper({
 						<div className='me-2'>
 							{item.track.artists.length === 1 ? 'Artist:' : 'Artists:'}
 						</div>
-						<div className='flex flex-row gap-1'>
+						<div className='flex flex-row gap-1 flex-wrap'>
 							{item.track.artists.map((artist) => (
 								<div key={artist.id}>
 									<a

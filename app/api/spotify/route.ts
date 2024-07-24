@@ -6,7 +6,9 @@ import { formatFetchError } from '@/app/lib/utils';
 import axios, { AxiosResponse } from 'axios';
 import { NextResponse, type NextRequest } from 'next/server';
 
-export async function POST(req: NextRequest) {
+export async function POST(
+	req: NextRequest
+): Promise<NextResponse<SpotifyPlaylistResponse | { error: string }>> {
 	try {
 		if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
 			console.error(

@@ -6,7 +6,9 @@ import { formatFetchError } from '@/app/lib/utils';
 import { NextResponse, type NextRequest } from 'next/server';
 import { playlistInfo } from 'youtube-ext';
 
-export async function POST(req: NextRequest) {
+export async function POST(
+	req: NextRequest
+): Promise<NextResponse<YoutubePlaylistResponse | { error: string }>> {
 	try {
 		if (!process.env.YOUTUBE_API_KEY) {
 			console.error('Provide YOUTUBE_API_KEY env variable');
@@ -25,7 +27,7 @@ export async function POST(req: NextRequest) {
 			? body.playlist.slice(body.playlist.indexOf('list=') + 5)
 			: body.playlist;
 		const results: YoutubePlaylistResponse = await playlistInfo(id);
-		return Response.json(results, { status: 200 });
+		return NextResponse.json(results, { status: 200 });
 	} catch (error: unknown) {
 		return formatFetchError(error);
 	}

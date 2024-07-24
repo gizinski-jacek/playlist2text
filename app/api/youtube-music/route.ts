@@ -8,7 +8,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 import querystring from 'querystring';
 import YTMusic from 'ytmusic-api';
 
-export async function POST(req: NextRequest) {
+export async function POST(
+	req: NextRequest
+): Promise<NextResponse<YTMusicPlaylistResponse | { error: string }>> {
 	try {
 		if (!process.env.YOUTUBE_API_KEY) {
 			console.error('Provide YOUTUBE_API_KEY env variable');
@@ -41,7 +43,7 @@ export async function POST(req: NextRequest) {
 		const results: YTMusicPlaylistResponse = await ytmusic.getPlaylistVideos(
 			res.data.items[0].id
 		);
-		return Response.json(results, { status: 200 });
+		return NextResponse.json(results, { status: 200 });
 	} catch (error: unknown) {
 		return formatFetchError(error);
 	}

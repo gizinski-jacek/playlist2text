@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
-import { SpotifyAlbumTrack, SpotifyPlaylistTrack } from './types';
+import {
+	SpotifyAlbumTrack,
+	SpotifyPlaylistTrack,
+	YTMusicPlaylistResponse,
+} from './types';
 import { PlaylistVideo } from 'youtube-ext';
-import { VideoDetailed } from 'ytmusic-api';
 import { AxiosError } from 'axios';
 
 export function padNumber(x: number): string {
@@ -151,7 +154,7 @@ export function formatYTPlaylist(
 export function formatYTMusicPlaylist(
 	exportType: 'txt' | 'csv',
 	fields: string[],
-	trackList: VideoDetailed[]
+	trackList: YTMusicPlaylistResponse
 ): string[] {
 	const data = trackList.map((data): string => {
 		const array: string[] = [];

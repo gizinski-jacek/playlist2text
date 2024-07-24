@@ -1,40 +1,40 @@
 'use client';
 
-import axios, { AxiosError, AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { useState } from 'react';
 import {
-	Sources,
+	SourceName,
 	SpotifyAlbumResponse,
 	SpotifyPlaylistResponse,
+	YoutubePlaylistResponse,
+	YTMusicPlaylistResponse,
 } from './lib/types';
-import { PlaylistInfo } from 'youtube-ext';
-import { VideoDetailed } from 'ytmusic-api';
 import SpotifyPlaylistWrapper from './components/wrappers/SpotifyPlaylistWrapper';
+import SpotifyAlbumWrapper from './components/wrappers/SpotifyAlbumWrapper';
 import YTPlaylistWrapper from './components/wrappers/YTPlaylistWrapper';
 import YTMusicPlaylistWrapper from './components/wrappers/YTMusicPlaylistWrapper';
 import { spotifyFieldNames, sourcesData } from './lib/data';
 import {
-	formatSpotifyPlaylistToTXT,
-	formatYTPlaylistToTXT,
-	formatYTMusicPlaylistToTXT,
-	formatSpotifyPlaylistToCSV,
-	formatYTPlaylistToCSV,
-	formatYTMusicPlaylistToCSV,
+	formatSpotifyPlaylist,
+	formatSpotifyAlbum,
+	formatYTPlaylist,
+	formatYTMusicPlaylist,
 } from './lib/utils';
 import LoadingBar from './components/LoadingBar';
+import ScrollToTop from './components/ScrollToTop';
 
 export default function Home() {
 	const [fetching, setFetching] = useState(false);
-	const [playlistData, setPlaylistData] = useState<
+	const [tracksData, setTracksData] = useState<
 		| SpotifyPlaylistResponse
 		| SpotifyAlbumResponse
-		| PlaylistInfo
-		| VideoDetailed[]
+		| YoutubePlaylistResponse
+		| YTMusicPlaylistResponse
 		| null
 	>(null);
 	const [fetchingError, setFetchingError] = useState<string | null>(null);
-	const [selectedSource, setSelectedSource] = useState<Sources | null>(null);
-	const [renderedSource, setRenderedSource] = useState<string | null>(null);
+	const [selectedSource, setSelectedSource] = useState<SourceName | null>(null);
+	const [renderedSource, setRenderedSource] = useState<SourceName | null>(null);
 	const [playlistInput, setPlaylistInput] = useState('');
 	const [formError, setFormError] = useState<string | null>(null);
 	const [exportFields, setExportFields] = useState<
@@ -51,7 +51,7 @@ export default function Home() {
 		try {
 			e.preventDefault();
 			dismissErrors();
-			setPlaylistData(null);
+			setTracksData(null);
 			setFetching(true);
 			if (!selectedSource) {
 				setFormError('Select playlist source');
@@ -78,24 +78,20 @@ export default function Home() {
 				timeout: 10000,
 			});
 			setRenderedSource(selectedSource);
-			setPlaylistData(res.data);
+			setTracksData(res.data);
 			setFetching(false);
 		} catch (error: unknown) {
-			if (error instanceof AxiosError) {
-				setFetchingError(
-					error.response?.data.error || 'Unknown fetching error'
-				);
-			} else {
-				setFetchingError((error as Error).message || 'Unknown fetching error');
-			}
+			setFetchingError(
+				'Unknown fetching error. Make sure you selected correct source.'
+			);
 			setRenderedSource(null);
-			setPlaylistData(null);
+			setTracksData(null);
 			setFetching(false);
 		}
 	}
 
 	function handleSourceChange(e: React.ChangeEvent<HTMLInputElement>) {
-		const { value } = e.target as { value: Sources };
+		const { value } = e.target as { value: SourceName };
 		dismissErrors();
 		setSelectedSource(value);
 	}
@@ -124,13 +120,16 @@ export default function Home() {
 		}
 	}
 
-	function exportToTXTFile(e: React.MouseEvent<HTMLButtonElement>) {
+	function exportToFile(
+		e: React.MouseEvent<HTMLButtonElement>,
+		exportType: 'txt' | 'csv'
+	) {
 		e.preventDefault();
-		if (!playlistData || !renderedSource) {
+		if (!tracksData || !renderedSource) {
 			setFieldsError('No playlist data to export');
 			return;
 		}
-		let data: string[];
+		let exportData: string[] = [];
 		if (renderedSource === 'spotify') {
 			if (!exportFields.some((field) => field.checked)) {
 				setFieldsError('Must select at least one field to export');
@@ -142,41 +141,13 @@ export default function Home() {
 					fields.push(field.name);
 				}
 			});
-			data = formatSpotifyPlaylistToTXT(
+			exportData = formatSpotifyPlaylist(
+				exportType,
 				fields,
-				(playlistData as SpotifyPlaylistResponse).tracks.items
-			);
-		} else if (renderedSource === 'youtube') {
-			data = formatYTPlaylistToTXT(
-				['Track Name', 'Duration'],
-				(playlistData as PlaylistInfo).videos
-			);
-		} else {
-			data = formatYTMusicPlaylistToTXT(
-				['Track Name'],
-				playlistData as VideoDetailed[]
+				(tracksData as SpotifyPlaylistResponse).tracks.items
 			);
 		}
-		const linebreaks = data.join('\r\n');
-		const blob = new Blob([linebreaks], {
-			type: 'text/plain;charset=utf-8',
-		});
-		const url = URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.download = 'playlist-data.txt';
-		link.href = url;
-		link.click();
-		link.remove();
-	}
-
-	function exportToCSVFile(e: React.MouseEvent<HTMLButtonElement>) {
-		e.preventDefault();
-		if (!playlistData || !renderedSource) {
-			setFieldsError('No playlist data to export');
-			return;
-		}
-		let data: string[];
-		if (renderedSource === 'spotify') {
+		if (renderedSource === 'spotify-album') {
 			if (!exportFields.some((field) => field.checked)) {
 				setFieldsError('Must select at least one field to export');
 				return;
@@ -187,31 +158,50 @@ export default function Home() {
 					fields.push(field.name);
 				}
 			});
-			data = formatSpotifyPlaylistToCSV(
+			tracksData as SpotifyAlbumResponse;
+			exportData = formatSpotifyAlbum(
+				exportType,
 				fields,
-				(playlistData as SpotifyPlaylistResponse).tracks.items
+				(tracksData as SpotifyAlbumResponse).name,
+				(tracksData as SpotifyAlbumResponse).release_date,
+				(tracksData as SpotifyAlbumResponse).tracks.items
 			);
 		} else if (renderedSource === 'youtube') {
-			data = formatYTPlaylistToCSV(
+			exportData = formatYTPlaylist(
+				exportType,
 				['Track Name', 'Duration'],
-				(playlistData as PlaylistInfo).videos
+				(tracksData as YoutubePlaylistResponse).videos
 			);
-		} else {
-			data = formatYTMusicPlaylistToCSV(
+		} else if (renderedSource === 'youtube-music') {
+			exportData = formatYTMusicPlaylist(
+				exportType,
 				['Track Name'],
-				playlistData as VideoDetailed[]
+				tracksData as YTMusicPlaylistResponse
 			);
 		}
-		const linebreaks = data.join('\r\n');
-		const blob = new Blob([linebreaks], {
-			type: 'text/csv;charset=UTF-8',
-		});
-		const url = URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.download = 'playlist-data.csv';
-		link.href = url;
-		link.click();
-		link.remove();
+		if (exportType === 'txt') {
+			const linebreaks = exportData.join('\r\n');
+			const blob = new Blob([linebreaks], {
+				type: 'text/plain;charset=utf-8',
+			});
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.download = 'tracks-data.txt';
+			link.href = url;
+			link.click();
+			link.remove();
+		} else if (exportType === 'csv') {
+			const linebreaks = exportData.join('\r\n');
+			const blob = new Blob([linebreaks], {
+				type: 'text/csv;charset=UTF-8',
+			});
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.download = 'tracks-data.csv';
+			link.href = url;
+			link.click();
+			link.remove();
+		}
 	}
 
 	function dismissErrors() {
@@ -226,9 +216,10 @@ export default function Home() {
 				<div className='flex flex-col md:flex-row gap-4'>
 					<fieldset className='grid grid-cols-2 xl:grid-cols-4 gap-4 p-3 px-5 border border-2 border-blue-600 rounded'>
 						<legend className='px-1 font-semibold capitalize'>
-							Select playlist source
+							Select source
 						</legend>
 						{sourcesData.map((source) => {
+							// ! Skip hosts without access to API.
 							if (
 								source.name === 'soundcloud' ||
 								source.name === 'apple-music'
@@ -292,11 +283,11 @@ export default function Home() {
 			</form>
 			{fetching && <LoadingBar margin='1rem' width='50%' />}
 			{!fetching && fetchingError && (
-				<div className='text-xl font-semibold self-center p-2 bg-gray-800 text-white border border-[3px] border-red-600 rounded'>
+				<div className='w-1/3 text-center text-xl font-semibold self-center p-2 bg-gray-800 text-white border border-[3px] border-red-600 rounded'>
 					{fetchingError}
 				</div>
 			)}
-			{playlistData ? (
+			{tracksData ? (
 				renderedSource === 'spotify' || renderedSource === 'spotify-album' ? (
 					<form className='flex flex-col gap-4 relative'>
 						<fieldset className='grid grid-cols-2 md:grid-cols-3 gap-4 p-3 px-5 border border-2 border-orange-700 rounded'>
@@ -348,7 +339,7 @@ export default function Home() {
 							<button
 								className='font-bold text-white p-2 rounded-lg bg-orange-700 '
 								type='button'
-								onClick={exportToTXTFile}
+								onClick={(e) => exportToFile(e, 'txt')}
 								disabled={
 									fetching ||
 									!!fieldsError ||
@@ -360,7 +351,7 @@ export default function Home() {
 							<button
 								className='font-bold text-white p-2 rounded-lg bg-orange-700'
 								type='button'
-								onClick={exportToCSVFile}
+								onClick={(e) => exportToFile(e, 'csv')}
 								disabled={
 									fetching ||
 									!!fieldsError ||
@@ -376,7 +367,7 @@ export default function Home() {
 						<button
 							className='font-bold text-white p-2 rounded-lg bg-orange-700 '
 							type='button'
-							onClick={exportToTXTFile}
+							onClick={(e) => exportToFile(e, 'txt')}
 							disabled={fetching}
 						>
 							Download as TXT file
@@ -384,7 +375,7 @@ export default function Home() {
 						<button
 							className='font-bold text-white p-2 rounded-lg bg-orange-700'
 							type='button'
-							onClick={exportToCSVFile}
+							onClick={(e) => exportToFile(e, 'csv')}
 							disabled={fetching}
 						>
 							Download as CSV file
@@ -392,26 +383,22 @@ export default function Home() {
 					</div>
 				)
 			) : null}
-			{playlistData ? (
+			{tracksData ? (
 				renderedSource === 'spotify' ? (
 					<SpotifyPlaylistWrapper
-						data={playlistData as SpotifyPlaylistResponse}
+						data={tracksData as SpotifyPlaylistResponse}
 					/>
-				) : // :
-				// renderedSource === 'spotify-album' ? (
-				// // <SpotifyPlaylistWrapper
-				// // 	data={playlistData as SpotifyPlaylistResponse}
-				// // />
-				// (playlistData as SpotifyAlbumResponse).tracks.items.map((item, i) => (
-				// 	<div key={i}>{item.name}</div>
-				// ))
-				// )
-				renderedSource === 'youtube' ? (
-					<YTPlaylistWrapper data={playlistData as PlaylistInfo} />
+				) : renderedSource === 'spotify-album' ? (
+					<SpotifyAlbumWrapper data={tracksData as SpotifyAlbumResponse} />
+				) : renderedSource === 'youtube' ? (
+					<YTPlaylistWrapper data={tracksData as YoutubePlaylistResponse} />
 				) : renderedSource === 'youtube-music' ? (
-					<YTMusicPlaylistWrapper data={playlistData as VideoDetailed[]} />
+					<YTMusicPlaylistWrapper
+						data={tracksData as YTMusicPlaylistResponse}
+					/>
 				) : null
 			) : null}
+			<ScrollToTop />
 		</main>
 	);
 }

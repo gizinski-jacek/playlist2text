@@ -2,7 +2,7 @@
 // https://developers.google.com/youtube/v3/docs/playlists/list
 
 import { YTMusicPlaylistResponse } from '@/app/lib/types';
-import { fetchErrorFormat } from '@/app/lib/utils';
+import { formatFetchError } from '@/app/lib/utils';
 import axios, { AxiosResponse } from 'axios';
 import { NextResponse, type NextRequest } from 'next/server';
 import querystring from 'querystring';
@@ -43,6 +43,6 @@ export async function POST(req: NextRequest) {
 		);
 		return Response.json(results, { status: 200 });
 	} catch (error: unknown) {
-		return fetchErrorFormat(error);
+		return formatFetchError(error);
 	}
 }

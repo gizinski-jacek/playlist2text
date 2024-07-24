@@ -1,9 +1,12 @@
 import style from '../styles/LoadingBar.module.scss';
 
-const LoadingBar: React.FC<{ margin?: string; width?: string }> = ({
+export default function LoadingBar({
 	margin,
 	width,
-}) => {
+}: {
+	margin?: string;
+	width?: string;
+}) {
 	return (
 		<div
 			className={style.loading_bar_container}
@@ -12,6 +15,4 @@ const LoadingBar: React.FC<{ margin?: string; width?: string }> = ({
 			<div className={style.loading_bar}></div>
 		</div>
 	);
-};
-
-export default LoadingBar;
+}

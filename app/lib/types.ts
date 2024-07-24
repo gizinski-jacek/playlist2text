@@ -1,14 +1,17 @@
 import { PlaylistInfo } from 'youtube-ext';
 import { VideoDetailed } from 'ytmusic-api';
 
+export type SourceList = SourcesData[];
+
 export type SourcesData = {
-	name: string;
+	name: SourceName;
 	color: string;
 	url: string;
 	urlOption: string;
-}[];
+	iconPath: string;
+};
 
-export type Sources =
+export type SourceName =
 	| 'spotify'
 	| 'spotify-album'
 	| 'soundcloud'
@@ -62,10 +65,10 @@ export interface SpotifyTracksData {
 	offset: number;
 	previous: string;
 	total: number;
-	items: SpotifyTrack[];
+	items: SpotifyPlaylistTrack[];
 }
 
-export interface SpotifyTrack {
+export interface SpotifyPlaylistTrack {
 	added_at: string;
 	added_by: {
 		external_urls: {
@@ -221,46 +224,48 @@ export interface SpotifyAlbumTracksData {
 	offset: number;
 	previous: string;
 	total: number;
-	items: {
-		artists: {
-			external_urls: {
-				spotify: string;
-			};
-			href: string;
-			id: string;
-			name: string;
-			type: string;
-			uri: string;
-		}[];
-		available_markets: string[];
-		disc_number: number;
-		duration_ms: number;
-		explicit: false;
+	items: SpotifyAlbumTrack[];
+}
+
+export interface SpotifyAlbumTrack {
+	artists: {
 		external_urls: {
 			spotify: string;
 		};
 		href: string;
 		id: string;
-		is_playable: false;
-		linked_from: {
-			external_urls: {
-				spotify: string;
-			};
-			href: string;
-			id: string;
-			type: string;
-			uri: string;
-		};
-		restrictions: {
-			reason: string;
-		};
 		name: string;
-		preview_url: string;
-		track_number: number;
 		type: string;
 		uri: string;
-		is_local: false;
 	}[];
+	available_markets: string[];
+	disc_number: number;
+	duration_ms: number;
+	explicit: false;
+	external_urls: {
+		spotify: string;
+	};
+	href: string;
+	id: string;
+	is_playable: false;
+	linked_from: {
+		external_urls: {
+			spotify: string;
+		};
+		href: string;
+		id: string;
+		type: string;
+		uri: string;
+	};
+	restrictions: {
+		reason: string;
+	};
+	name: string;
+	preview_url: string;
+	track_number: number;
+	type: string;
+	uri: string;
+	is_local: false;
 }
 
 export type YoutubePlaylistResponse = PlaylistInfo;

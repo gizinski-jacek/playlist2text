@@ -89,6 +89,13 @@ export default function Home() {
 								'Unknown fetching error. Make sure you selected correct source.'
 						: 'Unknown fetching error. Make sure you selected correct source.'
 				);
+			} else if (error instanceof NextResponse) {
+				setFetchingError(
+					error.status !== 500
+						? error.statusText ||
+								'Unknown fetching error. Make sure you selected correct source.'
+						: 'Unknown fetching error. Make sure you selected correct source.'
+				);
 			} else {
 				setFetchingError(
 					'Unknown fetching error. Make sure you selected correct source.'

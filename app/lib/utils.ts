@@ -190,12 +190,18 @@ export function formatFetchError(error: unknown): NextResponse<{
 	if (error instanceof AxiosError) {
 		return NextResponse.json(
 			{ error: error.response?.data.error || 'Unknown server error' },
-			{ status: error.status || 500 }
+			{
+				status: error.status || 500,
+				statusText: error.response?.data.error || 'Unknown server error',
+			}
 		);
 	} else {
 		return NextResponse.json(
 			{ error: 'Unknown server error' },
-			{ status: 500 }
+			{
+				status: 500,
+				statusText: 'Unknown server error',
+			}
 		);
 	}
 }

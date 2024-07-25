@@ -1,6 +1,6 @@
 'use client';
 
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import { useState } from 'react';
 import {
 	SourceName,
@@ -22,6 +22,7 @@ import {
 } from './lib/utils';
 import LoadingBar from './components/LoadingBar';
 import ScrollToTop from './components/ScrollToTop';
+import { NextResponse } from 'next/server';
 
 export default function Home() {
 	const [fetching, setFetching] = useState(false);
@@ -81,9 +82,18 @@ export default function Home() {
 			setTracksData(res.data);
 			setFetching(false);
 		} catch (error: unknown) {
-			setFetchingError(
-				'Unknown fetching error. Make sure you selected correct source.'
-			);
+			if (error instanceof AxiosError) {
+				setFetchingError(
+					error.response?.status !== 500
+						? error.response?.data.error ||
+								'Unknown fetching error. Make sure you selected correct source.'
+						: 'Unknown fetching error. Make sure you selected correct source.'
+				);
+			} else {
+				setFetchingError(
+					'Unknown fetching error. Make sure you selected correct source.'
+				);
+			}
 			setRenderedSource(null);
 			setTracksData(null);
 			setFetching(false);
